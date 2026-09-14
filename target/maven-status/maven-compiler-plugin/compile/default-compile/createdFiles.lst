@@ -1,0 +1,5 @@
+com/taskflow/entity/Task.class
+com/taskflow/repository/TaskRepository.class
+com/taskflow/TaskflowApiApplication.class
+com/taskflow/service/TaskService.class
+com/taskflow/controller/TaskController.class
