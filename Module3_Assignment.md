@@ -198,7 +198,7 @@ Add these lines:
 
 ```properties
 # Database configuration
-spring.datasource.url=jdbc:h2:mem:taskflowdb
+spring.datasource.url=jdbc:h2:file:./data/taskflowdb
 spring.datasource.driverClassName=org.h2.Driver
 spring.datasource.username=sa
 spring.datasource.password=
@@ -211,6 +211,46 @@ spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 # H2 Console
 spring.h2.console.enabled=true
 ```
+
+### Persistent task storage
+
+H2 stores tasks in `data/taskflowdb.mv.db`, relative to the application's
+working directory. Run Maven from the project directory each time to use the
+same database. The `update` schema setting preserves existing records.
+The local `data/` directory is excluded from Git and Docker builds.
+Existing in-memory records are not automatically migrated.
+
+For Docker, use the included Compose configuration from the project directory.
+It always mounts the same named volume at `/app/data` and restarts the service
+when Docker starts (unless you explicitly stopped it):
+
+```bash
+docker volume create taskflow-api-data
+docker compose up -d
+```
+
+To restart the application or recreate its container:
+
+```bash
+docker compose restart
+# Or recreate the container while keeping the database:
+docker compose up -d --force-recreate
+```
+
+Stop any existing container using port 8080 before running this command.
+Do not start a separate container with plain `docker run -p 8080:8080
+taskflow:latest` or Docker Desktop's image Run button: those do not apply the
+Compose volume or database configuration. Manage the Compose service instead.
+The environment variable also enables file storage for an older image built
+with the in-memory configuration. Use `docker compose up -d --build` to rebuild
+the image after source changes.
+
+The volume is external, so Compose requires it to exist and will not delete it
+even with `docker compose down -v`. Do not manually delete `taskflow-api-data`
+if you want to keep the tasks. Local Maven runs and Docker use separate
+databases. In the H2 console, use the JDBC URL for the active runtime
+(`jdbc:h2:file:./data/taskflowdb` locally or
+`jdbc:h2:file:/app/data/taskflowdb` in Docker).
 
 ## Testing Your Work
 
